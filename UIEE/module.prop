@@ -1,0 +1,10 @@
+id=uiee_smart_engine
+name=UIEE智能调度引擎 - Hamilton理论版
+version=v3.1.0_hamilton_optimized
+versionCode=3101000
+author=元昔
+description=基于Hamilton适应度理论和连续囚徒困境的智能调度引擎，集成性能优化组件，支持ARM64/x86-64架构，实现长期自我迭代进化，包含自适应采样、智能缓存、线程池并行处理等性能优化特性
+updateJson=https://raw.githubusercontent.com/uiee/module-updates/main/update.json
+minMagisk=20400
+minApatch=10568
+updateJson=0

@@ -1,0 +1,110 @@
+#!/system/bin/sh
+
+#################################
+# UIEE智能调度引擎模块安装器
+# 3.0版本 - C++原生实现
+#################################
+
+umask 022
+
+ui_print "*******************************"
+ui_print "UIEE智能调度引擎 v3.0"
+ui_print "基于帕累托最优和纳什均衡算法"
+ui_print "C++原生实现，无需Python"
+ui_print "*******************************"
+
+# 加载工具函数
+if [ -f "$TMP/util_functions.sh" ]; then
+    . $TMP/util_functions.sh
+else
+    # 简单实现基本功能
+    ui_print() { echo "$1"; }
+    is_mounted() { mount | grep -q "$1"; }
+    set_perm() { chmod "$3" "$1" 2>/dev/null || true; }
+    set_perm_recurse() { find "$1" -type d -exec chmod 755 {} \; 2>/dev/null || true; }
+fi
+
+ui_print "- 检查系统兼容性"
+
+# 检查架构
+ARCH=$(getprop ro.product.cpu.abi)
+ui_print "- 设备架构: $ARCH"
+
+# 检查Android版本
+API=$(getprop ro.build.version.sdk)
+ui_print "- Android API级别: $API"
+
+# 检查Magisk/Apatch版本
+if [ -f "/data/adb/magisk/util_functions.sh" ]; then
+    ui_print "- 检测到Magisk环境"
+elif [ -f "/data/adb/apatch/util_functions.sh" ]; then
+    ui_print "- 检测到Apatch环境"
+else
+    ui_print "⚠️  未检测到Magisk或Apatch环境"
+fi
+
+ui_print "- 开始安装模块"
+
+# 创建模块目录
+mkdir -p "$MODPATH"
+mkdir -p "$MODPATH/bin"
+mkdir -p "$MODPATH/conf"
+mkdir -p "$MODPATH/logs"
+mkdir -p "$MODPATH/webroot"
+mkdir -p "$MODPATH/data"
+
+# 复制核心文件
+cp -f "$TMP/module.prop" "$MODPATH/module.prop"
+cp -f "$TMP/service.sh" "$MODPATH/service.sh"
+
+# 复制配置文件
+if [ -d "$TMP/conf" ]; then
+    cp -r "$TMP/conf/"* "$MODPATH/conf/"
+fi
+
+# 复制WebUI文件
+if [ -d "$TMP/webroot" ]; then
+    cp -r "$TMP/webroot/"* "$MODPATH/webroot/"
+fi
+
+# 复制二进制文件
+if [ -d "$TMP/bin" ]; then
+    cp -r "$TMP/bin/"* "$MODPATH/bin/"
+fi
+
+ui_print "- 设置文件权限"
+
+# 设置基本权限
+set_perm "$MODPATH/module.prop" 0 0 0644
+set_perm "$MODPATH/service.sh" 0 0 0755
+
+# 设置目录权限
+set_perm_recurse "$MODPATH"
+
+# 设置二进制文件权限
+if [ -d "$MODPATH/bin" ]; then
+    find "$MODPATH/bin" -type f -exec set_perm {} 0 0 0755 \;
+fi
+
+# 设置配置文件权限
+if [ -d "$MODPATH/conf" ]; then
+    find "$MODPATH/conf" -type f -exec set_perm {} 0 0 0644 \;
+fi
+
+ui_print "- 创建数据目录"
+
+# 创建用户数据目录
+mkdir -p "$MODPATH/data/config"
+mkdir -p "$MODPATH/data/cache"
+mkdir -p "$MODPATH/data/logs"
+
+# 设置数据目录权限
+set_perm_recurse "$MODPATH/data"
+
+ui_print "- 安装完成"
+ui_print "*******************************"
+ui_print "UIEE智能调度引擎安装成功！"
+ui_print "请重启设备以启用模块"
+ui_print "*******************************"
+
+exit 0

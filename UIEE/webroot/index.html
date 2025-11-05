@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UIEE智能调度引擎 v3.0</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 移动端适配样式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+                margin: 0;
+            }
+            
+            .header {
+                padding: 15px;
+                text-align: center;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+                margin: 0;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .control-panel {
+                padding: 15px;
+            }
+            
+            .control-group {
+                margin-bottom: 20px;
+            }
+            
+            .control-group h3 {
+                font-size: 1.1em;
+                margin-bottom: 10px;
+            }
+            
+            .button-group {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+                width: 100%;
+            }
+            
+            .scene-buttons {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            
+            .scene-btn {
+                padding: 10px;
+                font-size: 12px;
+            }
+        }
+        
+        /* 深色主题 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1a2e, #16213e);
+                color: #e0e0e0;
+            }
+            
+            .container {
+                background: rgba(22, 33, 62, 0.9);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .header {
+                background: linear-gradient(135deg, #0f3460, #16537e);
+            }
+            
+            .stat-card {
+                background: rgba(15, 52, 96, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .control-panel {
+                background: rgba(22, 33, 62, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .input-group input, .input-group select {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: #e0e0e0;
+            }
+            
+            .btn {
+                background: linear-gradient(135deg, #16537e, #0f3460);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .btn:hover {
+                background: linear-gradient(135deg, #0f3460, #16537e);
+            }
+            
+            .scene-btn {
+                background: rgba(22, 52, 86, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: #e0e0e0;
+            }
+            
+            .scene-btn.active {
+                background: linear-gradient(135deg, #16537e, #0f3460);
+                border-color: #4fc3f7;
+            }
+            
+            .log-container {
+                background: rgba(0, 0, 0, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🚀 UIEE智能调度引擎</h1>
+            <p>基于帕累托最优和纳什均衡算法的智能调度系统</p>
+            <div class="version">v3.0.0 | C++原生实现</div>
+        </div>
+
+        <!-- 状态概览 -->
+        <div class="status-section">
+            <h2>📊 系统状态</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-content">
+                        <div class="stat-label">引擎状态</div>
+                        <div class="stat-value" id="engine-status">检测中...</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-content">
+                        <div class="stat-label">CES综合分数</div>
+                        <div class="stat-value" id="ces-score">--</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">🔧</div>
+                    <div class="stat-content">
+                        <div class="stat-label">CPU使用率</div>
+                        <div class="stat-value" id="cpu-usage">--</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">💾</div>
+                    <div class="stat-content">
+                        <div class="stat-label">内存使用率</div>
+                        <div class="stat-value" id="memory-usage">--</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">🌡️</div>
+                    <div class="stat-content">
+                        <div class="stat-label">热状态</div>
+                        <div class="stat-value" id="thermal-state">--</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">📱</div>
+                    <div class="stat-content">
+                        <div class="stat-label">活动任务</div>
+                        <div class="stat-value" id="active-tasks">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h2>🎮 智能控制</h2>
+            
+            <!-- 场景模式 -->
+            <div class="control-group">
+                <h3>🎯 场景模式</h3>
+                <div class="scene-buttons">
+                    <button class="scene-btn" data-scene="0">🎮 游戏模式</button>
+                    <button class="scene-btn" data-scene="1">💬 社交模式</button>
+                    <button class="scene-btn" data-scene="2">📺 媒体模式</button>
+                    <button class="scene-btn" data-scene="3">💼 办公模式</button>
+                </div>
+                <div class="scene-description" id="scene-description">
+                    当前场景: 自动检测
+                </div>
+            </div>
+
+            <!-- 引擎控制 -->
+            <div class="control-group">
+                <h3>⚙️ 引擎控制</h3>
+                <div class="button-group">
+                    <button class="btn btn-primary" id="start-engine">启动引擎</button>
+                    <button class="btn btn-warning" id="stop-engine">停止引擎</button>
+                    <button class="btn btn-info" id="restart-engine">重启引擎</button>
+                </div>
+            </div>
+
+            <!-- CTO设置 -->
+            <div class="control-group">
+                <h3>🔧 CTO优化</h3>
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="enable-cto"> 启用CTO任务绑定
+                    </label>
+                </div>
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="enable-io-scheduling"> 启用I/O调度
+                    </label>
+                </div>
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="enable-cpu-affinity"> 启用CPU亲和性
+                    </label>
+                </div>
+            </div>
+
+            <!-- 高级设置 -->
+            <div class="control-group">
+                <h3>⚡ 高级设置</h3>
+                <div class="input-group">
+                    <label>调度间隔 (秒):</label>
+                    <input type="range" id="scheduling-interval" min="1" max="30" value="5">
+                    <span id="interval-value">5</span>
+                </div>
+                <div class="input-group">
+                    <label>优化强度:</label>
+                    <input type="range" id="optimization-level" min="0" max="100" value="50">
+                    <span id="optimization-value">50%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 实时日志 -->
+        <div class="log-section">
+            <h2>📝 实时日志</h2>
+            <div class="log-container" id="log-container">
+                <div class="log-entry">UIEE引擎初始化中...</div>
+            </div>
+            <div class="log-controls">
+                <button class="btn btn-sm" id="clear-logs">清空日志</button>
+                <button class="btn btn-sm" id="export-logs">导出日志</button>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <p>© 2024 UIEE智能调度引擎 | 基于帕累托最优和纳什均衡算法</p>
+            <p>支持Magisk/Apatch | C++原生实现 | 移动端优化</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
