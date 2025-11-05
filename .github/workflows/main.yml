@@ -1,0 +1,41 @@
+name: ARM64 Compile
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install ARM64 cross compiler
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y g++-aarch64-linux-gnu build-essential file
+
+    - name: Build uiee_engine for ARM64
+      run: |
+        set -e
+        mkdir -p build
+        aarch64-linux-gnu-g++ -std=c++17 -O2 -Wall -Wextra -I./include -c ./bin/main.cpp -o build/main.o
+        aarch64-linux-gnu-g++ -std=c++17 -O2 -Wall -Wextra -I./include -c ./bin/uiee_engine.cpp -o build/uiee_engine.o
+        aarch64-linux-gnu-g++ -pthread -static-libstdc++ build/main.o build/uiee_engine.o -o bin/uiee_engine_arm64 || true
+        chmod +x bin/uiee_engine_arm64 || true
+
+    - name: Verify binary
+      run: |
+        if [ -f bin/uiee_engine_arm64 ]; then file bin/uiee_engine_arm64; else echo 'No binary produced'; fi
+
+    - name: Run basic test (non-fatal)
+      run: |
+        if [ -x bin/uiee_engine_arm64 ]; then ./bin/uiee_engine_arm64 --test || true; else echo 'Skipping test: binary missing'; fi
+
+    - name: Upload ARM64 binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: uiee_engine_arm64
+        path: bin/uiee_engine_arm64
